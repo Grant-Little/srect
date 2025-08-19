@@ -6,15 +6,19 @@
 #define SR_PRIORITY_STATIC INT_MAX
 
 /* sr_Body flags */
-#define SR_NO_COLLISION         0x01u
-#define SR_DISABLED             0x02u
+#define SR_NO_COLLISION         0x0001u
+#define SR_DISABLED             0x0002u
 
 /* sr_Body_Tick_Data flags */
-#define SR_COLLIDED             0x01u
-#define SR_COLLIDED_CEILING     0x02u
-#define SR_COLLIDED_RIGHT_WALL  0x04u
-#define SR_COLLIDED_FLOOR       0x08u
-#define SR_COLLIDED_LEFT_WALL   0x10u
+#define SR_COLLIDED             0x0001u
+#define SR_COLLIDED_CEILING     0x0002u
+#define SR_COLLIDED_RIGHT_WALL  0x0004u
+#define SR_COLLIDED_FLOOR       0x0008u
+#define SR_COLLIDED_LEFT_WALL   0x0010u
+#define SR_COLLIDED_UP          0x0020u
+#define SR_COLLIDED_RIGHT       0x0040u
+#define SR_COLLIDED_DOWN        0x0080u
+#define SR_COLLIDED_LEFT        0x0100u
 
 typedef struct {
     float x, y;
@@ -198,21 +202,25 @@ void sr_translate_body_direct(sr_Body *b, float xmove, float ymove) {
 
 void sr_resolve_bodies(sr_Context *ctx, sr_Body_Id id1, sr_Body_Id id2) {
     sr_Body *b1, *b2;
+    sr_Body_Tick_Data *b1t, *b2t;
     sr_Vec2 b2_to_b1;
     float b1_extent, b2_extent, x_overlap, y_overlap;
 
     b1 = &(ctx->bodies[id1]);
     b2 = &(ctx->bodies[id2]);
 
+    b1t = &(ctx->bodies_tick_data[id1]);
+    b2t = &(ctx->bodies_tick_data[id2]);
+
     if (b1->priority == SR_PRIORITY_STATIC && b2->priority == SR_PRIORITY_STATIC) {
         return;
     }
 
-    ctx->bodies_tick_data[id1].flags |= SR_COLLIDED;
-    ctx->bodies_tick_data[id2].flags |= SR_COLLIDED;
+    b1t->flags |= SR_COLLIDED;
+    b2t->flags |= SR_COLLIDED;
 
-    ctx->bodies_tick_data[id1].custom_flags |= b2->custom_flags;
-    ctx->bodies_tick_data[id2].custom_flags |= b1->custom_flags;
+    b1t->custom_flags |= b2->custom_flags;
+    b2t->custom_flags |= b1->custom_flags;
 
     b2_to_b1.x = (b1->r.min.x + b1->r.max.x) / 2.0f - (b2->r.min.x + b2->r.max.x) / 2.0f;
     b2_to_b1.y = (b1->r.min.y + b1->r.max.y) / 2.0f - (b2->r.min.y + b2->r.max.y) / 2.0f;
@@ -232,33 +240,45 @@ void sr_resolve_bodies(sr_Context *ctx, sr_Body_Id id1, sr_Body_Id id2) {
             if (b2_to_b1.y > 0.0f) {
                 sr_translate_body_direct(b1, 0.0f, y_overlap);
                 if (b2->priority == SR_PRIORITY_STATIC) {
-                    ctx->bodies_tick_data[id1].flags |= SR_COLLIDED_CEILING;
+                    b1t->flags |= SR_COLLIDED_CEILING;
                 }
+                b1t->flags |= SR_COLLIDED_UP;
+                b2t->flags |= SR_COLLIDED_DOWN;
             } else {
                 sr_translate_body_direct(b1, 0.0f, -y_overlap);
                 if (b2->priority == SR_PRIORITY_STATIC) {
-                    ctx->bodies_tick_data[id1].flags |= SR_COLLIDED_FLOOR;
+                    b1t->flags |= SR_COLLIDED_FLOOR;
                 }
+                b1t->flags |= SR_COLLIDED_DOWN;
+                b2t->flags |= SR_COLLIDED_UP;
             }
         } else if (b1->priority == b2->priority) {
             if (b2_to_b1.y > 0.0f) {
                 sr_translate_body_direct(b1, 0.0f, y_overlap / 2.0f);
                 sr_translate_body_direct(b2, 0.0f, -y_overlap / 2.0f);
+                b1t->flags |= SR_COLLIDED_UP;
+                b2t->flags |= SR_COLLIDED_DOWN;
             } else {
                 sr_translate_body_direct(b1, 0.0f, -y_overlap / 2.0f);
                 sr_translate_body_direct(b2, 0.0f, y_overlap / 2.0f);
+                b1t->flags |= SR_COLLIDED_DOWN;
+                b2t->flags |= SR_COLLIDED_UP;
             }
         } else {
             if (b2_to_b1.y < 0.0f) {
                 sr_translate_body_direct(b2, 0.0f, y_overlap);
                 if (b1->priority == SR_PRIORITY_STATIC) {
-                    ctx->bodies_tick_data[id2].flags |= SR_COLLIDED_CEILING;
+                    b2t->flags |= SR_COLLIDED_CEILING;
                 }
+                b1t->flags |= SR_COLLIDED_DOWN;
+                b2t->flags |= SR_COLLIDED_UP;
             } else {
                 sr_translate_body_direct(b2, 0.0f, -y_overlap);
                 if (b1->priority == SR_PRIORITY_STATIC) {
-                    ctx->bodies_tick_data[id2].flags |= SR_COLLIDED_FLOOR;
+                    b2t->flags |= SR_COLLIDED_FLOOR;
                 }
+                b1t->flags |= SR_COLLIDED_UP;
+                b2t->flags |= SR_COLLIDED_DOWN;
             }
         }
     } else {
@@ -266,33 +286,45 @@ void sr_resolve_bodies(sr_Context *ctx, sr_Body_Id id1, sr_Body_Id id2) {
             if (b2_to_b1.x > 0.0f) {
                 sr_translate_body_direct(b1, x_overlap, 0.0f);
                 if (b2->priority == SR_PRIORITY_STATIC) {
-                    ctx->bodies_tick_data[id1].flags |= SR_COLLIDED_LEFT_WALL;
+                    b1t->flags |= SR_COLLIDED_LEFT_WALL;
                 }
+                b1t->flags |= SR_COLLIDED_LEFT;
+                b2t->flags |= SR_COLLIDED_RIGHT;
             } else {
                 sr_translate_body_direct(b1, -x_overlap, 0.0f);
                 if (b2->priority == SR_PRIORITY_STATIC) {
-                    ctx->bodies_tick_data[id1].flags |= SR_COLLIDED_RIGHT_WALL;
+                    b1t->flags |= SR_COLLIDED_RIGHT_WALL;
                 }
+                b1t->flags |= SR_COLLIDED_RIGHT;
+                b2t->flags |= SR_COLLIDED_LEFT;
             }
         } else if (b1->priority == b2->priority) {
             if (b2_to_b1.x > 0.0f) {
                 sr_translate_body_direct(b1, x_overlap / 2.0f, 0.0f);
                 sr_translate_body_direct(b2, -x_overlap / 2.0f, 0.0f);
+                b1t->flags |= SR_COLLIDED_LEFT;
+                b2t->flags |= SR_COLLIDED_RIGHT;
             } else {
                 sr_translate_body_direct(b1, -x_overlap / 2.0f, 0.0f);
                 sr_translate_body_direct(b2, x_overlap / 2.0f, 0.0f);
+                b1t->flags |= SR_COLLIDED_RIGHT;
+                b2t->flags |= SR_COLLIDED_LEFT;
             }
         } else {
             if (b2_to_b1.x < 0.0f) {
                 sr_translate_body_direct(b2, x_overlap, 0.0f);
                 if (b1->priority == SR_PRIORITY_STATIC) {
-                    ctx->bodies_tick_data[id2].flags |= SR_COLLIDED_LEFT_WALL;
+                    b2t->flags |= SR_COLLIDED_LEFT_WALL;
                 }
+                b1t->flags |= SR_COLLIDED_RIGHT;
+                b2t->flags |= SR_COLLIDED_LEFT;
             } else {
                 sr_translate_body_direct(b2, -x_overlap, 0.0f);
                 if (b1->priority == SR_PRIORITY_STATIC) {
-                    ctx->bodies_tick_data[id2].flags |= SR_COLLIDED_RIGHT_WALL;
+                    b2t->flags |= SR_COLLIDED_RIGHT_WALL;
                 }
+                b1t->flags |= SR_COLLIDED_LEFT;
+                b2t->flags |= SR_COLLIDED_RIGHT;
             }
         }
     }
