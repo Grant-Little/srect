@@ -30,11 +30,11 @@ typedef struct {
     sr_Rect r;
     sr_Vec2 offset;
     int priority;
-    unsigned int flags;
+    unsigned int flags, custom_flags;
 } sr_Body;
 
 typedef struct {
-    unsigned int flags;
+    unsigned int flags, custom_flags;
 } sr_Body_Tick_Data;
 
 typedef enum {
@@ -69,7 +69,7 @@ void sr_context_deinit(sr_Context *ctx);
 
 void sr_context_clear(sr_Context *ctx);
 
-sr_Body_Id sr_new_body(sr_Context *ctx, float xpos, float ypos, float xdim, float ydim, sr_Attach_Location loc, int priority, unsigned int flags);
+sr_Body_Id sr_new_body(sr_Context *ctx, float xpos, float ypos, float xdim, float ydim, sr_Attach_Location loc, int priority, unsigned int flags, unsigned int custom_flags);
 
 sr_Body_Id sr_register_body(sr_Context *ctx, sr_Body b);
 
@@ -209,6 +209,9 @@ void sr_resolve_bodies(sr_Context *ctx, sr_Body_Id id1, sr_Body_Id id2) {
     ctx->bodies_tick_data[id1].flags |= SR_COLLIDED;
     ctx->bodies_tick_data[id2].flags |= SR_COLLIDED;
 
+    ctx->bodies_tick_data[id1].custom_flags |= b2->custom_flags;
+    ctx->bodies_tick_data[id2].custom_flags |= b1->custom_flags;
+
     b2_to_b1.x = (b1->r.min.x + b1->r.max.x) / 2.0f - (b2->r.min.x + b2->r.max.x) / 2.0f;
     b2_to_b1.y = (b1->r.min.y + b1->r.max.y) / 2.0f - (b2->r.min.y + b2->r.max.y) / 2.0f;
 
@@ -321,11 +324,12 @@ void sr_context_clear(sr_Context *ctx) {
     ctx->num_bodies = 0;
 }
 
-sr_Body_Id sr_new_body(sr_Context *ctx, float xpos, float ypos, float xdim, float ydim, sr_Attach_Location loc, int priority, unsigned int flags) {
+sr_Body_Id sr_new_body(sr_Context *ctx, float xpos, float ypos, float xdim, float ydim, sr_Attach_Location loc, int priority, unsigned int flags, unsigned int custom_flags) {
     sr_Body b;
 
     b.priority = priority;
     b.flags = flags;
+    b.custom_flags = custom_flags;
 
     switch (loc) {
     case SR_CENTER:
