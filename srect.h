@@ -95,6 +95,8 @@ int sr_get_body_to_body_vector(sr_Vec2 *vec_out, sr_Context *ctx, sr_Body_Id id1
 
 int sr_get_body_to_body_vector_comp(float *xvec_out, float *yvec_out, sr_Context *ctx, sr_Body_Id id1, sr_Body_Id id2);
 
+int sr_get_body_tick_data(sr_Body_Tick_Data *data_out, sr_Context *ctx, sr_Body_Id id);
+
 int sr_did_body_collide(sr_Context *ctx, sr_Body_Id id);
 
 int sr_did_body_collide_wall(sr_Context *ctx, sr_Body_Id id);
@@ -539,6 +541,16 @@ int sr_get_body_to_body_vector_comp(float *xvec_out, float *yvec_out, sr_Context
     } else {
         *xvec_out = (ctx->bodies[id2].r.max.x + ctx->bodies[id2].r.min.x) / 2 - (ctx->bodies[id1].r.max.x + ctx->bodies[id1].r.min.x) / 2;
         *yvec_out = (ctx->bodies[id2].r.max.y + ctx->bodies[id2].r.min.y) / 2 - (ctx->bodies[id1].r.max.y + ctx->bodies[id1].r.min.y) / 2;
+
+        return 0;
+    }
+}
+
+int sr_get_body_tick_data(sr_Body_Tick_Data *data_out, sr_Context *ctx, sr_Body_Id id) {
+    if (id >= ctx->num_bodies) {
+        return -1;
+    } else {
+        *data_out = ctx->bodies_tick_data[id];
 
         return 0;
     }
