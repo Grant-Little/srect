@@ -105,13 +105,21 @@ int sr_did_body_collide(sr_Context *ctx, sr_Body_Id id);
 
 int sr_did_body_collide_wall(sr_Context *ctx, sr_Body_Id id);
 
-int sr_did_body_collide_right_wall(sr_Context *ctx, sr_Body_Id id);
+int sr_did_body_collide_ceiling(sr_Context *ctx, sr_Body_Id id);
 
-int sr_did_body_collide_left_wall(sr_Context *ctx, sr_Body_Id id);
+int sr_did_body_collide_right_wall(sr_Context *ctx, sr_Body_Id id);
 
 int sr_did_body_collide_floor(sr_Context *ctx, sr_Body_Id id);
 
-int sr_did_body_collide_ceiling(sr_Context *ctx, sr_Body_Id id);
+int sr_did_body_collide_left_wall(sr_Context *ctx, sr_Body_Id id);
+
+int sr_did_body_collide_up(sr_Context *ctx, sr_Body_Id id);
+
+int sr_did_body_collide_right(sr_Context *ctx, sr_Body_Id id);
+
+int sr_did_body_collide_down(sr_Context *ctx, sr_Body_Id id);
+
+int sr_did_body_collide_left(sr_Context *ctx, sr_Body_Id id);
 
 void sr_resolve_collisions(sr_Context *ctx);
 
@@ -612,11 +620,11 @@ int sr_did_body_collide_wall(sr_Context *ctx, sr_Body_Id id) {
     }
 }
 
-int sr_did_body_collide_right_wall(sr_Context *ctx, sr_Body_Id id) {
+int sr_did_body_collide_ceiling(sr_Context *ctx, sr_Body_Id id) {
     if (id >= ctx->num_bodies) {
         return -1;
     } else {
-        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_RIGHT_WALL) {
+        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_CEILING) {
             return 1;
         } else {
             return 0;
@@ -624,11 +632,11 @@ int sr_did_body_collide_right_wall(sr_Context *ctx, sr_Body_Id id) {
     }
 }
 
-int sr_did_body_collide_left_wall(sr_Context *ctx, sr_Body_Id id) {
+int sr_did_body_collide_right_wall(sr_Context *ctx, sr_Body_Id id) {
     if (id >= ctx->num_bodies) {
         return -1;
     } else {
-        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_LEFT_WALL) {
+        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_RIGHT_WALL) {
             return 1;
         } else {
             return 0;
@@ -648,11 +656,59 @@ int sr_did_body_collide_floor(sr_Context *ctx, sr_Body_Id id) {
     }
 }
 
-int sr_did_body_collide_ceiling(sr_Context *ctx, sr_Body_Id id) {
+int sr_did_body_collide_left_wall(sr_Context *ctx, sr_Body_Id id) {
     if (id >= ctx->num_bodies) {
         return -1;
     } else {
-        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_CEILING) {
+        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_LEFT_WALL) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+}
+
+int sr_did_body_collide_up(sr_Context *ctx, sr_Body_Id id) {
+    if (id >= ctx->num_bodies) {
+        return -1;
+    } else {
+        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_UP) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+}
+
+int sr_did_body_collide_right(sr_Context *ctx, sr_Body_Id id) {
+    if (id >= ctx->num_bodies) {
+        return -1;
+    } else {
+        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_RIGHT) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+}
+
+int sr_did_body_collide_down(sr_Context *ctx, sr_Body_Id id) {
+    if (id >= ctx->num_bodies) {
+        return -1;
+    } else {
+        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_DOWN) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+}
+
+int sr_did_body_collide_left(sr_Context *ctx, sr_Body_Id id) {
+    if (id >= ctx->num_bodies) {
+        return -1;
+    } else {
+        if (ctx->bodies_tick_data[id].flags & SR_COLLIDED_LEFT) {
             return 1;
         } else {
             return 0;
