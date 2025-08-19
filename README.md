@@ -28,10 +28,10 @@ int main(void) {
     xmove = 0;
     ymove = 0;
 
-    sr_context_init(&ctx, 100, SR_SWEEP_X);
-    b1 = sr_new_body(&ctx, 200, 200, 60, 60, SR_CENTER, 0, 0);
-    b2 = sr_new_body(&ctx, 150, 150, 60, 60, SR_CENTER, 0, 0);
-    b3 = sr_new_body(&ctx, 300, 300, 60, 60, SR_CENTER, SR_PRIORITY_STATIC, 0);
+    sr_context_init(&ctx, 3, SR_SWEEP_X);
+    b1 = sr_new_body(&ctx, 200, 200, 60, 60, SR_CENTER, 0, 0, 0);
+    b2 = sr_new_body(&ctx, 150, 150, 60, 60, SR_CENTER, 0, 0, 0);
+    b3 = sr_new_body(&ctx, 300, 300, 60, 60, SR_CENTER, SR_PRIORITY_STATIC, 0, 0);
 
     InitWindow(WIDTH, HEIGHT, WIN_NAME);
     SetTargetFPS(FPS);
@@ -77,7 +77,6 @@ int main(void) {
 
     return 0;
 }
-
 ```
 
 ## Details
