@@ -359,7 +359,12 @@ int sr_context_init(sr_Context *ctx, int expected_num_bodies, sr_Sweep_Direction
 
 void sr_context_deinit(sr_Context *ctx) {
     free(ctx->bodies);
-    memset(ctx, 0, sizeof(sr_Context));
+    ctx->bodies = NULL;
+    ctx->bodies_sorted = NULL;
+    ctx->bodies_tick_data = NULL;
+    ctx->num_bodies = 0;
+    ctx->bodies_cap = 0;
+    ctx->sweep_direction = 0;
 }
 
 void sr_context_clear(sr_Context *ctx) {
