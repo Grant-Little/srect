@@ -1,7 +1,7 @@
 #ifndef SRECT_H
 #define SRECT_H
 
-#include <limits.h> /* INT_MAX */
+#include <limits.h> /* INT_MAX UINT_MAX ULONG_MAX */
 
 #define SR_PRIORITY_STATIC INT_MAX
 
@@ -129,6 +129,19 @@ void sr_resolve_collisions(sr_Context *ctx);
 
 #include <stddef.h> /* NULL */
 #include <string.h> /* memcpy() memset()  */
+#include <float.h> /* FLT_DIG */
+
+#if UINT_MAX == 4294967295
+    #define SR_U32 unsigned int
+#elif ULONG_MAX == 4294967295
+    #define SR_U32 unsigned long
+#else
+    #error "Cannot determine acceptable unsigned 32 bit integer type"
+#endif
+
+#if FLT_DIG != 6
+    #error "float does not appear to be 32 bit"
+#endif
 
 #ifndef SR_REALLOC
     #include <stdlib.h>
@@ -142,10 +155,10 @@ void sr_resolve_collisions(sr_Context *ctx);
 #endif
 
 float sr_fabsf(float num) {
-    unsigned int bits;
+    SR_U32 bits;
 
-    bits = *(unsigned int *)&num;
-    bits &= 0x7FFFFFFF;
+    bits = *(SR_U32 *)&num;
+    bits &= 0x7FFFFFFFul;
 
     return *(float *)&bits;
 }
