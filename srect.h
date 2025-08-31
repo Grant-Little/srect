@@ -745,13 +745,13 @@ void sr_resolve_collisions(sr_Context *ctx) {
     if (ctx->sweep_direction == SR_SWEEP_X) {
 
     for (i = 0; i < ctx->num_bodies; ++i) {
-        if (SR_B(i).flags & SR_DISABLED || SR_B(i).flags & SR_NO_COLLISION) {
+        if (SR_B(i).flags & SR_DISABLED) {
             continue;
         }
         for (j = i + 1; j < ctx->num_bodies; ++j) {
             if (SR_B(j).r.min.x > SR_B(i).r.max.x) {
                 break;
-            } else if (SR_B(j).flags & SR_DISABLED || SR_B(j).flags & SR_NO_COLLISION) {
+            } else if (SR_B(j).flags & SR_DISABLED) {
                 continue;
             } else {
                 if (sr_do_rects_overlap(SR_B(i).r, SR_B(j).r)) {
