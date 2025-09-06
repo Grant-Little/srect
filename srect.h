@@ -143,10 +143,14 @@ void sr_resolve_collisions(sr_Context *ctx);
     #error "float does not appear to be 32 bit"
 #endif
 
-#ifndef SR_REALLOC
+#if defined(SR_REALLOC) && !defined(SR_FREE) || !defined(SR_REALLOC) && defined(SR_FREE)
+    #error "Custom allocator support requires defining both SR_REALLOC and SR_FREE"
+#endif
+
+#if !defined(SR_REALLOC) && !defined(SR_FREE)
     #include <stdlib.h>
-    #define SR_REALLOC(ptr, sz) realloc(ptr, sz)
-    #define SR_FREE(ptr) free(ptr)
+    #define SR_REALLOC(c, ptr, sz) realloc(ptr, sz)
+    #define SR_FREE(c, ptr) free(ptr)
 #endif
 
 #ifndef SR_ASSERT
@@ -356,7 +360,7 @@ int sr_context_init(sr_Context *ctx, int expected_num_bodies, sr_Sweep_Direction
     SR_ASSERT(sr_fabsf(-1.0f) == 1.0f && "custom fabsf does not appear to be working");
     SR_ASSERT(ctx != NULL && "cannot initialize null pointer");
 
-    ctx->bodies = SR_REALLOC(NULL, sizeof(sr_Body) * expected_num_bodies + sizeof(sr_Body_Id) * expected_num_bodies + sizeof(sr_Body_Tick_Data) * expected_num_bodies);
+    ctx->bodies = SR_REALLOC(NULL, NULL, sizeof(sr_Body) * expected_num_bodies + sizeof(sr_Body_Id) * expected_num_bodies + sizeof(sr_Body_Tick_Data) * expected_num_bodies);
     if (ctx->bodies == NULL) {
         return -1;
     } else {
@@ -371,7 +375,7 @@ int sr_context_init(sr_Context *ctx, int expected_num_bodies, sr_Sweep_Direction
 }
 
 void sr_context_deinit(sr_Context *ctx) {
-    free(ctx->bodies);
+    SR_FREE(NULL, ctx->bodies);
     ctx->bodies = NULL;
     ctx->bodies_sorted = NULL;
     ctx->bodies_tick_data = NULL;
@@ -439,6 +443,7 @@ sr_Body_Id sr_new_body(sr_Context *ctx, float xpos, float ypos, float xdim, floa
 }
 
 sr_Body_Id sr_register_body(sr_Context *ctx, sr_Body b) {
+    void *realloc_out;
     sr_Body_Id *bodies_sorted_temp;
     sr_Body_Tick_Data *bodies_tick_data_temp;
     sr_Body_Id next_id;
@@ -450,10 +455,12 @@ sr_Body_Id sr_register_body(sr_Context *ctx, sr_Body b) {
     next_id = ctx->num_bodies;
 
     if (ctx->num_bodies >= ctx->bodies_cap) {
-        ctx->bodies = SR_REALLOC(ctx->bodies, 2 * sizeof(sr_Body) * ctx->num_bodies + 2 * sizeof(sr_Body_Id) * ctx->num_bodies + 2 * sizeof(sr_Body_Tick_Data) * ctx->num_bodies);
-        if (ctx->bodies == NULL) {
+        realloc_out = SR_REALLOC(NULL, ctx->bodies, 2 * sizeof(sr_Body) * ctx->num_bodies + 2 * sizeof(sr_Body_Id) * ctx->num_bodies + 2 * sizeof(sr_Body_Tick_Data) * ctx->num_bodies);
+        //ctx->bodies = SR_REALLOC(NULL, ctx->bodies, 2 * sizeof(sr_Body) * ctx->num_bodies + 2 * sizeof(sr_Body_Id) * ctx->num_bodies + 2 * sizeof(sr_Body_Tick_Data) * ctx->num_bodies);
+        if (realloc_out == NULL) {
             return -1;
         } else {
+            ctx->bodies = realloc_out;
             bodies_sorted_temp = (sr_Body_Id *)(ctx->bodies + ctx->num_bodies);
             bodies_tick_data_temp = (sr_Body_Tick_Data *)(bodies_sorted_temp + ctx->num_bodies);
 
