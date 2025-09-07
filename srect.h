@@ -149,6 +149,9 @@ void sr_resolve_collisions(sr_Context *ctx);
 
 #if !defined(SR_REALLOC) && !defined(SR_FREE)
     #include <stdlib.h>
+    #ifndef SR_ALLOC_CONTEXT
+        #define SR_ALLOC_CONTEXT NULL
+    #endif
     #define SR_REALLOC(c, ptr, sz) realloc(ptr, sz)
     #define SR_FREE(c, ptr) free(ptr)
 #endif
@@ -360,7 +363,7 @@ int sr_context_init(sr_Context *ctx, int expected_num_bodies, sr_Sweep_Direction
     SR_ASSERT(sr_fabsf(-1.0f) == 1.0f && "custom fabsf does not appear to be working");
     SR_ASSERT(ctx != NULL && "cannot initialize null pointer");
 
-    ctx->bodies = SR_REALLOC(NULL, NULL, sizeof(sr_Body) * expected_num_bodies + sizeof(sr_Body_Id) * expected_num_bodies + sizeof(sr_Body_Tick_Data) * expected_num_bodies);
+    ctx->bodies = SR_REALLOC(SR_ALLOC_CONTEXT, NULL, sizeof(sr_Body) * expected_num_bodies + sizeof(sr_Body_Id) * expected_num_bodies + sizeof(sr_Body_Tick_Data) * expected_num_bodies);
     if (ctx->bodies == NULL) {
         return -1;
     } else {
@@ -375,7 +378,7 @@ int sr_context_init(sr_Context *ctx, int expected_num_bodies, sr_Sweep_Direction
 }
 
 void sr_context_deinit(sr_Context *ctx) {
-    SR_FREE(NULL, ctx->bodies);
+    SR_FREE(SR_ALLOC_CONTEXT, ctx->bodies);
     ctx->bodies = NULL;
     ctx->bodies_sorted = NULL;
     ctx->bodies_tick_data = NULL;
@@ -455,8 +458,7 @@ sr_Body_Id sr_register_body(sr_Context *ctx, sr_Body b) {
     next_id = ctx->num_bodies;
 
     if (ctx->num_bodies >= ctx->bodies_cap) {
-        realloc_out = SR_REALLOC(NULL, ctx->bodies, 2 * sizeof(sr_Body) * ctx->num_bodies + 2 * sizeof(sr_Body_Id) * ctx->num_bodies + 2 * sizeof(sr_Body_Tick_Data) * ctx->num_bodies);
-        //ctx->bodies = SR_REALLOC(NULL, ctx->bodies, 2 * sizeof(sr_Body) * ctx->num_bodies + 2 * sizeof(sr_Body_Id) * ctx->num_bodies + 2 * sizeof(sr_Body_Tick_Data) * ctx->num_bodies);
+        realloc_out = SR_REALLOC(SR_ALLOC_CONTEXT, ctx->bodies, 2 * sizeof(sr_Body) * ctx->num_bodies + 2 * sizeof(sr_Body_Id) * ctx->num_bodies + 2 * sizeof(sr_Body_Tick_Data) * ctx->num_bodies);
         if (realloc_out == NULL) {
             return -1;
         } else {
