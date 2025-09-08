@@ -147,11 +147,12 @@ void sr_resolve_collisions(sr_Context *ctx);
     #error "Custom allocator support requires defining both SR_REALLOC and SR_FREE"
 #endif
 
+#ifndef SR_ALLOC_CONTEXT
+    #define SR_ALLOC_CONTEXT NULL
+#endif
+
 #if !defined(SR_REALLOC) && !defined(SR_FREE)
     #include <stdlib.h>
-    #ifndef SR_ALLOC_CONTEXT
-        #define SR_ALLOC_CONTEXT NULL
-    #endif
     #define SR_REALLOC(c, ptr, sz) realloc(ptr, sz)
     #define SR_FREE(c, ptr) free(ptr)
 #endif
