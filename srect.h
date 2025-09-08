@@ -360,18 +360,25 @@ void sr_resolve_bodies(sr_Context *ctx, sr_Body_Id id1, sr_Body_Id id2) {
 }
 
 int sr_context_init(sr_Context *ctx, int expected_num_bodies, sr_Sweep_Direction sdir) {
+    int bodies_to_alloc;
     SR_ASSERT(sizeof(float) == 4 && sizeof(unsigned int) == 4 && "custom fabsf relies on float and unsigned int being 32 bit, which does not appear to be true");
     SR_ASSERT(sr_fabsf(-1.0f) == 1.0f && "custom fabsf does not appear to be working");
     SR_ASSERT(ctx != NULL && "cannot initialize null pointer");
 
-    ctx->bodies = SR_REALLOC(SR_ALLOC_CONTEXT, NULL, sizeof(sr_Body) * expected_num_bodies + sizeof(sr_Body_Id) * expected_num_bodies + sizeof(sr_Body_Tick_Data) * expected_num_bodies);
+    if (expected_num_bodies == 0) {
+        bodies_to_alloc = 1;
+    } else {
+        bodies_to_alloc = expected_num_bodies;
+    }
+
+    ctx->bodies = SR_REALLOC(SR_ALLOC_CONTEXT, NULL, sizeof(sr_Body) * bodies_to_alloc + sizeof(sr_Body_Id) * bodies_to_alloc + sizeof(sr_Body_Tick_Data) * bodies_to_alloc);
     if (ctx->bodies == NULL) {
         return -1;
     } else {
-        ctx->bodies_sorted = (sr_Body_Id *)(ctx->bodies + expected_num_bodies);
-        ctx->bodies_tick_data = (sr_Body_Tick_Data *)(ctx->bodies_sorted + expected_num_bodies);
+        ctx->bodies_sorted = (sr_Body_Id *)(ctx->bodies + bodies_to_alloc);
+        ctx->bodies_tick_data = (sr_Body_Tick_Data *)(ctx->bodies_sorted + bodies_to_alloc);
         ctx->num_bodies = 0;
-        ctx->bodies_cap = expected_num_bodies;
+        ctx->bodies_cap = bodies_to_alloc;
         ctx->sweep_direction = sdir;
 
         return 0;
